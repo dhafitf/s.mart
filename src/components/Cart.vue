@@ -80,7 +80,7 @@ export default {
         </div>
         <div class="bg-white w-full h-[1px] mt-4"></div>
       </div>
-      <div class="text-white font-medium text-end">
+      <div v-if="store.cartItem[1]" class="text-white font-medium text-end">
         {{
           store.cartItem
             .reduce(
