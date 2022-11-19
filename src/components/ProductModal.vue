@@ -38,12 +38,19 @@ function changeSize(size) {
 }
 
 function sendtoCard(item) {
-  store.cartItem.push({
-    title: item.title,
-    price: item.price,
-    amount,
-    options: [sizeOption.value],
-  });
+  const findItem = store.cartItem.findIndex((cart) => item.name === cart.name);
+  if (!findItem) {
+    store.cartItem[findItem].amount++;
+  } else {
+    store.cartItem.push({
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      amount,
+      options: [sizeOption.value],
+      img_url: item.img_url,
+    });
+  }
   isOpen.value = false;
 }
 </script>
@@ -98,19 +105,19 @@ export default {
                     >
                       <img
                         class="object-center h-full absolute inset-0 object-cover"
-                        src="/kaos.png"
+                        :src="item.img_url"
                         alt=""
                       />
                     </div>
                     <div class="w-full flex flex-col gap-6">
                       <h2 class="text-4xl font-AudioWide font-semibold">
-                        {{ item.title }}
+                        {{ item.name }}
                       </h2>
                       <div
                         class="flex items-center font-semibold justify-between"
                       >
                         <span class="text-2xl text-primary">{{
-                          item.price.toLocaleString("id-ID", {
+                          Number(item.price).toLocaleString("id-ID", {
                             style: "currency",
                             currency: "IDR",
                           })
@@ -172,20 +179,7 @@ export default {
                       </div>
                       <div>
                         <p class="whitespace-pre-line">
-                          Lorem ipsum dolor sit amet, consectetur adipiscing
-                          elit. Tortor ullamcorper tempus, consectetur
-                          facilisis. Malesuada imperdiet massa rhoncus dignissim
-                          nullam. Urna viverra et semper mollis interdum egestas
-                          nam tellus. Adipiscing leo, nunc convallis
-                          pellentesque.
-                          <br />
-                          <br />
-                          Sit lorem aliquam, sed vitae eget pretium orci non.
-                          Sed eleifend sagittis, sed duis elementum donec tempor
-                          adipiscing. Nulla volutpat donec facilisi tortor ac.
-                          Suscipit et adipiscing ipsum morbi ornare. Porttitor
-                          sem ipsum sed nulla adipiscing lacus risus. Adipiscing
-                          ullamcorper nullam ultrices urna sit sed. Egestas a.
+                          {{ item.description }}
                         </p>
                       </div>
                       <div

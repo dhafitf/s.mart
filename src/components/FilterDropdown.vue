@@ -27,7 +27,7 @@
           <div class="text-sm mb-4">Category</div>
           <div class="flex flex-wrap gap-2">
             <MenuItem
-              v-for="category in categories"
+              v-for="category in props.categories"
               :key="category"
               @click="selectCategory(category)"
             >
@@ -37,7 +37,7 @@
                   'group transition-all hover:bg-primary hover:text-white min-w-[80px] justify-center border border-primary flex items-center rounded-md px-2 py-[2px] text-sm',
                 ]"
               >
-                {{ category }}
+                {{ category.name }}
               </button>
             </MenuItem>
           </div>
@@ -52,11 +52,12 @@
             >
               <button
                 :class="[
-                  selectedsortBy === sortBy && 'bg-primary text-white',
+                  selectedsortBy.name === sortBy.name &&
+                    'bg-primary text-white',
                   'group transition-all hover:bg-primary hover:text-white min-w-[80px] justify-center border border-primary flex items-center rounded-md px-2 py-[2px] text-sm',
                 ]"
               >
-                {{ sortBy }}
+                {{ sortBy.name }}
               </button>
             </MenuItem>
           </div>
@@ -71,34 +72,53 @@ import { Menu, MenuButton, MenuItems, MenuItem } from "@headlessui/vue";
 import ArrowDownIcon from "./icons/IconArrowDown.vue";
 import FilterIcon from "./icons/IconFilter.vue";
 import { ref } from "vue";
-
-const categories = [
-  "Fashion",
-  "Health & Hygiene",
-  "Tools",
-  "Beauty",
-  "Literature",
-  "Hobbies",
-];
+import { store } from "../utils/store";
 
 const sortByList = [
-  "Highest Price",
-  "Lowest Price",
-  "Most Sales",
-  "Newest",
-  "Oldest",
+  {
+    name: "Highest Price",
+    query: ["price", "sortType=desc"],
+  },
+  {
+    name: "Lowest Price",
+    query: ["price", "sortType=asc"],
+  },
+  {
+    name: "Most Sales",
+    query: ["mostSales"],
+  },
+  {
+    name: "Newest",
+    query: ["newest"],
+  },
+  {
+    name: "Oldest",
+    query: ["oldest"],
+  },
 ];
 
-const selectedCategory = ref("");
-const selectedsortBy = ref("");
+const props = defineProps({
+  categories: Object,
+});
 
-function selectCategory(name) {
-  if (name === selectedCategory.value) return (selectedCategory.value = "");
-  selectedCategory.value = name;
+const selectedCategory = ref({});
+const selectedsortBy = ref({});
+
+function selectCategory(category) {
+  if (category.name === selectedCategory.value.name) {
+    store.apiQuery.category = "";
+    return (selectedCategory.value = {});
+  }
+  selectedCategory.value = category;
+  store.apiQuery.category = `categoryId=${selectedCategory.value.id}`;
 }
 
-function selectSortBy(name) {
-  if (name === selectedsortBy.value) return (selectedsortBy.value = "");
-  selectedsortBy.value = name;
+function selectSortBy(sort) {
+  if (sort.name === selectedsortBy.value.name) {
+    store.apiQuery.sortBy = "";
+    return (selectedsortBy.value = {});
+  }
+  selectedsortBy.value = sort;
+  store.apiQuery.sortBy = `sortBy=${selectedsortBy.value.query.join("&")}`;
 }
 </script>

@@ -14,15 +14,10 @@ export default {
   <div
     class="w-full rounded-md transition-all duration-500 h-full group hover:shadow-2xl hover:scale-[1.02]"
   >
-    <!-- <div
-    v-for="(item, index) in filteredProduct"
-    :key="index"
-    class="w-full rounded-md transition-all duration-500 h-full group hover:shadow-2xl hover:scale-[1.02]"
-  > -->
     <div class="relative overflow-hidden rounded-lg">
       <img
         class="object-center object-cover w-full"
-        :src="item.variant[0].imageUrl"
+        :src="item.img_url"
         alt=""
       />
       <div
@@ -36,11 +31,11 @@ export default {
     </div>
     <div class="p-4">
       <div class="font-semibold text-lg line-clamp-1">
-        {{ item.title }}
+        {{ item.name }}
       </div>
       <div class="my-2">
         {{
-          item.price.toLocaleString("id-ID", {
+          Number(item.price).toLocaleString("id-ID", {
             style: "currency",
             currency: "IDR",
           })

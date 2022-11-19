@@ -1,27 +1,42 @@
 <script setup>
+import Header from "../components/Header.vue";
 import SearchIcon from "../components/icons/IconSearch.vue";
 import FilterDropdownVue from "../components/FilterDropdown.vue";
-import { projectsList } from "../utils/productsList";
 import Cart from "../components/Cart.vue";
 import { store } from "../utils/store";
+import axios from "axios";
+import { useRouter } from "vue-router";
+
+// eslint-disable-next-line no-unused-vars
+const router = useRouter();
 </script>
 
 <script>
 import { shallowRef } from "vue";
 import ProductModal from "../components/ProductModal.vue";
-// import ProductCard from "../components/ProductCard.vue";
-
 export default {
   name: "Home",
   data() {
     return {
+      isLoading: false,
+      user: JSON.parse(localStorage.getItem("user")),
+      token: localStorage.getItem("token"),
+      products: [],
+      productsPage: 0,
       activeComponent: shallowRef(null),
       search: "",
+      categories: [],
     };
   },
+  mounted() {
+    this.getProducts();
+    this.getCategories();
+  },
   methods: {
+    redirectToLogin() {
+      this.router.push("/login");
+    },
     getActiveComponent(activeComponent) {
-      console.log(activeComponent);
       this.activeComponent = activeComponent;
     },
     activateCartComponent() {
@@ -33,12 +48,63 @@ export default {
         return (this.activeComponent = null);
       }
     },
+    getCategories() {
+      axios
+        .get("https://fe-test.primeskills.id/api/category", {
+          headers: { Authorization: `Bearer ${this.token}` },
+        })
+        .then((res) => {
+          this.categories = res.data.data;
+        })
+        .catch((err) => {
+          this.redirectToLogin();
+          console.log(err);
+        });
+    },
+    getProducts() {
+      this.isLoading = true;
+      this.productsPage++;
+      axios
+        .get(
+          `https://fe-test.primeskills.id/api/products?page=${this.productsPage}`,
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+          }
+        )
+        .then((res) => {
+          this.products.push(...res.data.data.data);
+        })
+        .catch((err) => {
+          this.redirectToLogin();
+          console.log(err);
+        });
+      this.isLoading = false;
+    },
+    getProductsByQuery(query) {
+      this.isLoading = true;
+      this.productsPage = 0;
+      axios
+        .get(`https://fe-test.primeskills.id/api${query}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        })
+        .then((res) => {
+          this.products = res.data.data.data;
+          this.isLoading = false;
+        })
+        .catch((err) => {
+          this.redirectToLogin();
+          console.log(err);
+        });
+    },
   },
   computed: {
-    filteredProduct() {
-      return projectsList.filter((product) => {
-        return product.title.toLowerCase().includes(this.search.toLowerCase());
-      });
+    apiQuery() {
+      return Object.values(store.apiQuery).join("&");
+    },
+  },
+  watch: {
+    apiQuery: function (query) {
+      this.getProductsByQuery(`/filter?${query}`);
     },
   },
   components: { ProductModal },
@@ -46,8 +112,10 @@ export default {
 </script>
 
 <template>
+  <Header />
   <main class="font-SpaceGrotesk pb-40">
     <div id="promos" class="px-14">
+      {{ filteredProduct }}
       <div class="text-secondary font-bold text-center pb-14">
         <div class="text-4xl">Check out our newest</div>
         <h2 class="md:text-9xl text-3xl font-AudioWide">PROMOS</h2>
@@ -129,22 +197,59 @@ export default {
         >
           <span class="w-5 h-5"><SearchIcon /></span>
           <input
+            @keyup.enter="
+              getProductsByQuery(`/search?product_name=${this.search}`)
+            "
             v-model="search"
             type="text"
             placeholder="Search"
             class="focus:outline-none bg-primaryAlt placeholder:text-primary"
           />
         </div>
-        <FilterDropdownVue />
+        <FilterDropdownVue :categories="this.categories" />
       </div>
       <div
+        v-if="isLoading"
+        class="flex items-center py-3 font-bold justify-center bg-primary mb-4 text-white rounded"
+      >
+        <svg
+          class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          ></circle>
+          <path
+            class="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        Loading...
+      </div>
+      <div
+        v-if="!isLoading"
         class="grid md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-10"
       >
         <ProductModal
-          v-for="(item, index) in filteredProduct"
+          v-for="(item, index) in this.products"
           :key="index"
           :item="item"
         />
+      </div>
+      <div v-if="!isLoading" class="flex items-center mt-10 justify-center">
+        <span
+          @click="getProducts"
+          class="bg-primary px-10 hover:bg-primaryAlt hover:text-primary transition-all cursor-pointer py-3 rounded-lg text-white font-bold"
+          >Load more</span
+        >
       </div>
     </div>
     <div

@@ -5,6 +5,8 @@ import Cart from "./Cart.vue";
 import Shipping from "./Shipping.vue";
 import PaymentSuccess from "./PaymentSuccess.vue";
 import { store } from "../utils/store";
+import axios from "axios";
+import FormData from "form-data";
 </script>
 
 <script>
@@ -14,7 +16,28 @@ export default {
     getActiveComponent: Function,
   },
   methods: {
+    checkoutCart() {
+      const data = new FormData();
+      store.cartItem.forEach((item, index) => {
+        data.append(`product_id[${index}]`, item.id);
+        data.append(`qty[${index}]`, item.amount);
+      });
+      const config = {
+        method: "post",
+        url: "https://fe-test.primeskills.id/api/checkout",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        data,
+      };
+
+      axios(config)
+        .then(() => alert("Success"))
+        .catch((err) => {
+          alert(err);
+          console.log(err);
+        });
+    },
     clearCart() {
+      this.checkoutCart();
       store.cartItem = [];
     },
   },
@@ -59,24 +82,33 @@ export default {
       <div class="pt-4">
         <span class="font-semibold">Summary</span>
         <div class="pt-2 flex flex-col gap-2">
-          <div class="grid grid-cols-[3fr_1fr_2fr]">
-            <span class="truncate">Plain Basic T-Shirt - Number 1</span>
-            <span class="text-center justify-self-center">x2</span>
-            <span class="text-end">128.000</span>
-          </div>
-          <div class="grid grid-cols-[3fr_1fr_2fr]">
-            <span class="truncate">Desk Lamp - Short</span>
-            <span class="text-center justify-self-center">x1</span>
-            <span class="text-end">128.000</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="truncate">Shipping</span>
-            <span class="text-end">30.000</span>
+          <div v-for="item in store.cartItem" :key="item">
+            <div class="grid grid-cols-[3fr_1fr_2fr]">
+              <span class="truncate">{{ item.name }}</span>
+              <span class="text-center justify-self-center"
+                >x{{ item.amount }}</span
+              >
+              <span class="text-end">{{
+                Number(item.price).toLocaleString("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  minimumFractionDigits: 0,
+                })
+              }}</span>
+            </div>
           </div>
           <div class="bg-white w-full h-[1px]"></div>
           <div class="flex font-medium gap-12 justify-end">
             <span>Total</span>
-            <span>254.000</span>
+            <span>{{
+              store.cartItem
+                .reduce((prev, next) => Number(prev.price) + Number(next.price))
+                .toLocaleString("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  minimumFractionDigits: 0,
+                })
+            }}</span>
           </div>
         </div>
       </div>

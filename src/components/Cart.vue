@@ -40,17 +40,21 @@ export default {
         <div class="flex items-center">
           <img
             class="max-w-[6rem] w-full h-24 object-cover object-center rounded-md overflow-hidden"
-            src="/kaos.png"
+            :src="item.img_url"
             alt=""
           />
           <div class="flex w-full ml-6 flex-col text-white">
             <div class="line-clamp-1 font-bold">
-              {{ item.title }}
+              {{ item.name }}
             </div>
             <span>{{ item.options.join(", ") }}</span>
             <div class="grid grid-cols-3 mt-3">
               <span>{{
-                item.price.toLocaleString("id-ID", { minimumFractionDigits: 0 })
+                Number(item.price).toLocaleString("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  minimumFractionDigits: 0,
+                })
               }}</span>
               <div class="flex justify-center gap-4">
                 <div
@@ -71,6 +75,8 @@ export default {
                 (Number(item.price) * Number(item.amount)).toLocaleString(
                   "id-ID",
                   {
+                    style: "currency",
+                    currency: "IDR",
                     minimumFractionDigits: 0,
                   }
                 )
@@ -87,6 +93,8 @@ export default {
               (prev, cur) => prev.price * prev.amount + cur.price * cur.amount
             )
             .toLocaleString("id-ID", {
+              style: "currency",
+              currency: "IDR",
               minimumFractionDigits: 0,
             })
         }}
